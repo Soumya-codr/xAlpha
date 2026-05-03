@@ -423,18 +423,35 @@ def render_terminal():
     # ═══════════════════════════════════════════
     # ── FOOTER LIVE METRICS ──
     # ═══════════════════════════════════════════
+    # Include backtest resolved data in footer metrics
+    total_resolved = resolved_count
+    total_hits = live_hits
+    total_winkler = live_winkler_sum
+    
+    if os.path.exists("backtest_results.jsonl"):
+        with open("backtest_results.jsonl", "r") as f:
+            first_line = f.readline()
+            if first_line:
+                try:
+                    s = json.loads(first_line)
+                    bt_n = s.get("bars", 0)
+                    total_resolved += bt_n
+                    total_hits += int(s.get("coverage", 0) * bt_n)
+                    total_winkler += s.get("mean_winkler", 0) * bt_n
+                except: pass
+
+    overall_cov = (total_hits / total_resolved) if total_resolved > 0 else 0.0
+    overall_wink = (total_winkler / total_resolved) if total_resolved > 0 else 0.0
+
     st.markdown("---")
     lc1, lc2, lc3 = st.columns(3)
     
-    live_cov = (live_hits / resolved_count) if resolved_count > 0 else 0.0
-    live_wink = (live_winkler_sum / resolved_count) if resolved_count > 0 else 0.0
-    
     with lc1:
-        st.markdown(f'<div class="glass-card"><div class="metric-label">Live Coverage</div><div class="metric-value-sm">{live_cov:.3f}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="glass-card"><div class="metric-label">Live Coverage</div><div class="metric-value-sm">{overall_cov:.3f}</div></div>', unsafe_allow_html=True)
     with lc2:
-        st.markdown(f'<div class="glass-card"><div class="metric-label">Live Winkler</div><div class="metric-value-sm">{live_wink:,.2f}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="glass-card"><div class="metric-label">Live Winkler</div><div class="metric-value-sm">{overall_wink:,.2f}</div></div>', unsafe_allow_html=True)
     with lc3:
-        st.markdown(f'<div class="glass-card"><div class="metric-label">Resolved</div><div class="metric-value-sm">{resolved_count}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="glass-card"><div class="metric-label">Resolved</div><div class="metric-value-sm">{total_resolved}</div></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="footer-text">Data: Binance (data-api.binance.vision) · Model: GBM + Student-t with rolling volatility · Built by AlphaI</div>', unsafe_allow_html=True)
 
