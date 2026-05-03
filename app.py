@@ -400,11 +400,15 @@ def render_terminal():
                         if not row.get("summary"):
                             bt_rows.append(row)
                     except: pass
-        for r in bt_rows[-10:][::-1]:
+        # Use last 11 rows so we can get "current price" from previous row
+        recent_bt = bt_rows[-11:]
+        for i in range(1, len(recent_bt)):
+            r = recent_bt[i]
+            prev_price = recent_bt[i-1]["actual"]  # price model saw when predicting
             history_data.append({
                 "Time": "backtest",
                 "Target Hour": r["timestamp"],
-                "Current Price": "—",
+                "Current Price": f"${prev_price:,.2f}",
                 "Lower 95%": f"${r['pred_low']:,.2f}",
                 "Upper 95%": f"${r['pred_high']:,.2f}",
                 "Actual": f"${r['actual']:,.2f}",
