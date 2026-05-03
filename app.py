@@ -222,11 +222,10 @@ def render_terminal():
     live_winkler_sum = 0.0
     resolved_count = 0
     
-    # Sort descending (newest first)
+    # A. LIVE PREDICTIONS (newest first)
     for pr in sorted(live_preds, key=lambda x: x['target_time'], reverse=True):
         tt = pd.to_datetime(pr['target_time']).tz_localize(None)
         
-        # Find Actual Price from df_p
         actual_row = df_p[df_p['time'] == tt]
         actual_price = actual_row['close'].values[0] if not actual_row.empty else None
         
@@ -250,7 +249,34 @@ def render_terminal():
             "Hit": hit_status
         })
 
-    st.dataframe(pd.DataFrame(history_data), use_container_width=True, hide_index=True)
+    # B. BACKTEST RESULTS (show last 10 resolved for context)
+    if os.path.exists("backtest_results.jsonl"):
+        bt_rows = []
+        with open("backtest_results.jsonl", "r") as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        row = json.loads(line)
+                        if not row.get("summary"):
+                            bt_rows.append(row)
+                    except: pass
+        
+        # Take last 10 backtest predictions (most recent)
+        for r in bt_rows[-10:][::-1]:
+            history_data.append({
+                "Time": "backtest",
+                "Target Hour": r["timestamp"],
+                "Current Price": "—",
+                "Lower 95%": f"${r['pred_low']:,.2f}",
+                "Upper 95%": f"${r['pred_high']:,.2f}",
+                "Actual": f"${r['actual']:,.2f}",
+                "Hit": "✅" if r["covered"] else "❌"
+            })
+
+    if history_data:
+        st.dataframe(pd.DataFrame(history_data), use_container_width=True, hide_index=True)
+    else:
+        st.info("No predictions yet. Data will appear as hours pass.")
     
     # Footer Metrics
     st.markdown("---")
