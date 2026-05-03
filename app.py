@@ -233,7 +233,7 @@ def render_terminal():
     vol = recent_returns.std() if not recent_returns.empty else 0.02
     drift = df_p["log_return"].dropna().iloc[-200:].mean() if len(df_p) >= 200 else 0.0001
     
-    df_params = 4
+    df_params = 5
     alpha = 0.05
     t_val = stats.t.ppf(1 - alpha/2, df=df_params)
     

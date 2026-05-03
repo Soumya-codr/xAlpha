@@ -44,7 +44,7 @@ def run_backtest():
     start_idx = len(df) - backtest_length
     results = []
     
-    df_params = 4 # Student-t degrees of freedom for fat tails
+    df_params = 5 # Student-t degrees of freedom for fat tails
     alpha = 0.05
     t_val = stats.t.ppf(1 - alpha/2, df=df_params)
     
