@@ -326,12 +326,11 @@ def render_terminal():
             fig.add_trace(go.Scatter(x=df_live["target_time"], y=df_live["pred_low"], line=dict(width=0), showlegend=False, hoverinfo='skip'))
             fig.add_trace(go.Scatter(x=df_live["target_time"], y=df_live["pred_high"], fill='tonexty', fillcolor='rgba(6, 182, 212, 0.06)', line=dict(width=0), showlegend=False, hoverinfo='skip'))
             
-    # Price line (cyan gradient effect)
+    # Price line (cyan)
     fig.add_trace(go.Scatter(
         x=df_c["time"], y=df_c["close"],
         line=dict(color="#06b6d4", width=2.5, shape='spline'),
-        mode='lines', name='BTC Close',
-        fill='tozeroy', fillcolor='rgba(6, 182, 212, 0.04)'
+        mode='lines', name='BTC Close'
     ))
     
     # Forecast marker
