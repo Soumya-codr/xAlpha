@@ -66,20 +66,22 @@ def winkler_score(l, u, x, alpha=0.05):
 @st.cache_data(ttl=2)
 def fetch_market_snapshot():
     try:
-        k_url = "https://api.binance.com/api/v3/klines"
-        r_k = requests.get(k_url, params={"symbol": "BTCUSDT", "interval": "1h", "limit": 500}, timeout=5).json()
+        k_url = "https://data-api.binance.vision/api/v3/klines"
+        r_k = requests.get(k_url, params={"symbol": "BTCUSDT", "interval": "1h", "limit": 500}, timeout=10).json()
         df = pd.DataFrame(r_k)[[0, 4]]
         df.columns = ["time", "close"]
         df["close"] = df["close"].astype(float)
         df["time"] = pd.to_datetime(df["time"], unit="ms")
         df["log_return"] = np.log(df["close"] / df["close"].shift(1))
         
-        t_url = "https://api.binance.com/api/v3/ticker/price"
-        r_t = requests.get(t_url, params={"symbol": "BTCUSDT"}, timeout=5).json()
+        # Get latest price from 1m kline (most recent tick)
+        t_url = "https://data-api.binance.vision/api/v3/klines"
+        r_t = requests.get(t_url, params={"symbol": "BTCUSDT", "interval": "1m", "limit": 1}, timeout=10).json()
+        latest_price = float(r_t[0][4])  # close price of latest 1m candle
         
         return {
             "df": df, 
-            "price": float(r_t['price']), 
+            "price": latest_price, 
             "timestamp": time.time()
         }
     except Exception:
